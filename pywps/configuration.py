@@ -27,7 +27,6 @@ RAW_OPTIONS = [('logging', 'format'), ]
 CONFIG = None
 LOGGER = logging.getLogger("PYWPS")
 
-
 def get_config_value(section, option):
     """Get desired value from  configuration files
 

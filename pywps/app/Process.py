@@ -13,6 +13,7 @@ import json
 import shutil
 import tempfile
 
+from pywps.app.PgWriter import PgWriter
 from pywps import WPS, OWS, E, dblog
 from pywps.app.WPSResponse import WPSResponse
 from pywps.app.WPSResponse import STATUS
@@ -233,6 +234,8 @@ class Process(object):
             wps_response.update_status('PyWPS Process started', 0)
             wps_response = self.handler(wps_request, wps_response)
 
+            self.writer.store(self.outputs)
+
             # if (not wps_response.status_percentage) or (wps_response.status_percentage != 100):
             LOGGER.debug('Updating process status to 100% if everything went correctly')
             wps_response.update_status('PyWPS Process {} finished'.format(self.title),
@@ -391,3 +394,7 @@ class Process(object):
             LOGGER.debug('GISRC {}, GISBASE {}, GISDBASE {}, LOCATION {}, MAPSET {}'.format(
                          os.environ.get('GISRC'), os.environ.get('GISBASE'),
                          dbase, location, os.path.basename(mapset_name)))
+
+                         
+    def setOutputDbStorage(self, db_name):
+	    self.writer=PgWriter(db_name)

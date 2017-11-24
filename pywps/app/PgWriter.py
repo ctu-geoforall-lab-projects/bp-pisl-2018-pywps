@@ -3,12 +3,10 @@ import logging
 import psycopg2
 from osgeo import ogr, osr
 
-# from pywps import Format, FORMATS   ImportError: cannot import name 'Format' ??
 from pywps.configuration import get_config_value
-from pywps import Process         # "from pywps.app import Process" throws an error: TypeError: module.__init__() takes at most 2 arguments (3 given)'
-                                                # from pywps.app.Process import Process throws an error: ImportError: cannot import name 'Process'"
+
 class PgWriter(object):
-    def __init__(self, uuid, identifier, dbsettings): #dbsettings = db1 (nazev sekce z konfiguracniho souboru)
+    def __init__(self, uuid, identifier, dbsettings): #dbsettings = "db" (section name from pywps.cfg)
         self.dbname = get_config_value(dbsettings, "dbname")
         self.connstr = "dbname={} user={} password={} host={}".format(
             self.dbname,
@@ -55,7 +53,6 @@ class PgWriter(object):
 
         return identifier
             
-
     def store(self, outputs):
         for param in outputs:   
             self.store_output(param.file, param.identifier)

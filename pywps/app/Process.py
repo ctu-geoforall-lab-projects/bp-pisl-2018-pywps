@@ -396,5 +396,5 @@ class Process(object):
                          dbase, location, os.path.basename(mapset_name)))
 
                          
-    def setOutputDbStorage(self, db_name):
-	    self.writer=PgWriter(db_name)
+    def setOutputDbStorage(self, dbsettings):
+	    self.writer=PgWriter(self.uuid, self.identifier, dbsettings)

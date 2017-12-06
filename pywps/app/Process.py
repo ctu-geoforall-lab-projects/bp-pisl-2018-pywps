@@ -234,7 +234,8 @@ class Process(object):
             wps_response.update_status('PyWPS Process started', 0)
             wps_response = self.handler(wps_request, wps_response)
 
-            self.writer.store(self.outputs)
+            if hasattr(self, 'writer'):
+                self.writer.store(self.outputs)
 
             # if (not wps_response.status_percentage) or (wps_response.status_percentage != 100):
             LOGGER.debug('Updating process status to 100% if everything went correctly')
@@ -397,4 +398,4 @@ class Process(object):
 
                          
     def setOutputDbStorage(self, dbsettings):
-	    self.writer=PgWriter(self.uuid, self.identifier, dbsettings)
+        self.writer=PgWriter(self.uuid, self.identifier, dbsettings)

@@ -1,4 +1,5 @@
 import logging
+import pdb
 
 import psycopg2
 from osgeo import ogr, osr
@@ -18,14 +19,14 @@ class PgWriter(object):
         self.schema_name = self.create_schema(identifier, uuid)
     def create_schema(self, identifier, uuid):
         schema_name = '{}_{}'.format(identifier.lower(),
-                            str(uuid).replace("-", "_").lower()
+                            str(uuid).lower()
             )
         try:
             conn = psycopg2.connect(self.connstr)
         except:
             raise Exception ("Database connection has not been established.")
         cur = conn.cursor()
-        query = 'CREATE SCHEMA IF NOT EXISTS {};'.format(schema_name)  
+        query = 'CREATE SCHEMA IF NOT EXISTS "{}";'.format(schema_name)  
         try:
             cur.execute(query)
         except:
@@ -49,7 +50,7 @@ class PgWriter(object):
         )
         # TODO: layer is valid even copying failed (schema do not exists)
         if layer is None:
-            raise Exception("Writing output data to database failed.")
+            raise Exception("Writing output data to the database failed.")
 
         return identifier
             

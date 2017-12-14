@@ -233,8 +233,10 @@ class Process(object):
             LOGGER.debug('ProcessID=%s, HOME=%s', self.uuid, os.environ.get('HOME'))
             wps_response.update_status('PyWPS Process started', 0)
             wps_response = self.handler(wps_request, wps_response)
-
-            self.writer.store(self.outputs)
+            try:
+                self.writer.store(self.outputs)
+            except AttributeError:
+                pass
 
             # if (not wps_response.status_percentage) or (wps_response.status_percentage != 100):
             LOGGER.debug('Updating process status to 100% if everything went correctly')

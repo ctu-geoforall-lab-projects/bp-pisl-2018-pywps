@@ -4,6 +4,7 @@ import pdb
 import psycopg2
 from osgeo import ogr, osr
 
+from pywps import LOGGER
 from pywps.configuration import get_config_value
 
 class PgWriter(object):
@@ -38,15 +39,16 @@ class PgWriter(object):
 
     def store_output(self, file_name, identifier):
         #        try:
-        logging.debug("Connect string: {}".format(self.connstr))
-        dsc_in = ogr.Open("PG:" + self.connstr)
+        LOGGER.debug("Connect string: {}".format(self.connstr))
+        dsc_in = ogr.Open(file_name)
         if dsc_in is None:
             raise Exception("Reading data failed.")
         dsc_out = ogr.Open("PG:" + self.connstr)
         if dsc_out is None:
             raise Exception("Database connection has not been established.")
-        layer = dsc_out.CopyLayer(dsc_in.GetLayer(), identifier, ['OVERWRITE=YES',
-                                                  'SCHEMA={}'.format(self.schema_name)]
+        layer = dsc_out.CopyLayer(dsc_in.GetLayer(), identifier,
+                                  ['OVERWRITE=YES',
+                                   'SCHEMA={}'.format(self.schema_name)]
         )
         # TODO: layer is valid even copying failed (schema do not exists)
         if layer is None:
@@ -57,5 +59,5 @@ class PgWriter(object):
     def store(self, outputs):
         for param in outputs:   
             self.store_output(param.file, param.identifier)
-            param.data = '{}.{}.{}'.format(self.dbname, self.schema_name, param.identifier)
+            param.data = '"{}"."{}"."{}"'.format(self.dbname, self.schema_name, param.identifier)
             

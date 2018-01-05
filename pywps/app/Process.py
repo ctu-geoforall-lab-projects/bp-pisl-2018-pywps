@@ -13,7 +13,7 @@ import json
 import shutil
 import tempfile
 
-from pywps.app.PgWriter import PgWriter
+from pywps.inout.storage import PgStorage
 from pywps import WPS, OWS, E, dblog
 from pywps.app.WPSResponse import WPSResponse
 from pywps.app.WPSResponse import STATUS
@@ -398,4 +398,4 @@ class Process(object):
 
                          
     def setOutputDbStorage(self, dbsettings):
-        self.writer=PgWriter(self.uuid, self.identifier, dbsettings)
+        self.writer=PgStorage(self.uuid, self.identifier, dbsettings)

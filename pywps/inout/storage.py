@@ -141,11 +141,9 @@ class FileStorage(StorageAbstract):
 class PgStorage(StorageAbstract):
     """PostGIS/PostgreSQL storage implementation, stores data to PostGIS database
     """
-    def __init__(self):
-        dbsettings = 'db' # TODO
+    def __init__(self, uuid, identifier, dbsettings): #dbsettings = section name in pywps.cfg
         self.dbname = config.get_config_value(dbsettings, "dbname")
-        # -> target
-        self.connstr = "dbname={} user={} password={} host={}".format(
+        self.target = "dbname={} user={} password={} host={}".format(
             self.dbname,
             config.get_config_value(dbsettings, "user"), 
             config.get_config_value(dbsettings, "password"),
@@ -169,7 +167,7 @@ class PgStorage(StorageAbstract):
         # )
 
         try:
-            conn = psycopg2.connect(self.connstr)
+            conn = psycopg2.connect(self.target)
         except:
             raise Exception ("Database connection has not been established.")
         cur = conn.cursor()
@@ -186,11 +184,11 @@ class PgStorage(StorageAbstract):
     def _store_output(self, file_name, identifier):
         from osgeo import ogr
         #        try:
-        LOGGER.debug("Connect string: {}".format(self.connstr))
+        LOGGER.debug("Connect string: {}".format(self.target))
         dsc_in = ogr.Open(file_name)
         if dsc_in is None:
             raise Exception("Reading data failed.")
-        dsc_out = ogr.Open("PG:" + self.connstr)
+        dsc_out = ogr.Open("PG:" + self.target)
         if dsc_out is None:
             raise Exception("Database connection has not been established.")
         layer = dsc_out.CopyLayer(dsc_in.GetLayer(), identifier,

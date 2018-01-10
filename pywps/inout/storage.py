@@ -142,6 +142,8 @@ class PgStorage(StorageAbstract):
     """PostGIS/PostgreSQL storage implementation, stores data to PostGIS database
     """
     def __init__(self):
+        # TODO: more databases in config file
+        dbsettings = "db"
         self.dbname = config.get_config_value(dbsettings, "dbname")
         self.target = "dbname={} user={} password={} host={}".format(
             self.dbname,

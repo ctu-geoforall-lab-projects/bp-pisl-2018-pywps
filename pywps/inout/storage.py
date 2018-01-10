@@ -141,7 +141,7 @@ class FileStorage(StorageAbstract):
 class PgStorage(StorageAbstract):
     """PostGIS/PostgreSQL storage implementation, stores data to PostGIS database
     """
-    def __init__(self, uuid, identifier, dbsettings): #dbsettings = section name in pywps.cfg
+    def __init__(self):
         self.dbname = config.get_config_value(dbsettings, "dbname")
         self.target = "dbname={} user={} password={} host={}".format(
             self.dbname,

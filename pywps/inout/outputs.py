@@ -8,9 +8,10 @@
 from pywps._compat import text_type
 from pywps import E, WPS, OWS, OGCTYPE, NAMESPACES
 from pywps.inout import basic
-from pywps.inout.storage import FileStorage
+from pywps.inout.storage import FileStorage, PgStorage
 from pywps.inout.formats import Format
 from pywps.validator.mode import MODE
+from pywps import configuration as config
 import lxml.etree as etree
 import six
 
@@ -198,7 +199,14 @@ class ComplexOutput(basic.ComplexOutput):
         doc = WPS.Reference()
 
         # get_url will create the file and return the url for it
-        self.storage = FileStorage()
+        store_type = config.get_config_value('server', 'store_type')
+        self.storage = None
+        if store_type == 'db' and \
+           config.get_config_value('db', 'dbname'):
+            # TODO: more databases in config file
+            self.storage = PgStorage()
+        else:
+            self.storage = FileStorage()
         doc.attrib['{http://www.w3.org/1999/xlink}href'] = self.get_url()
 
         if self.data_format:

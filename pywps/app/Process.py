@@ -13,7 +13,6 @@ import json
 import shutil
 import tempfile
 
-from pywps.inout.storage import PgStorage
 from pywps import WPS, OWS, E, dblog
 from pywps.app.WPSResponse import WPSResponse
 from pywps.app.WPSResponse import STATUS
@@ -395,7 +394,3 @@ class Process(object):
             LOGGER.debug('GISRC {}, GISBASE {}, GISDBASE {}, LOCATION {}, MAPSET {}'.format(
                          os.environ.get('GISRC'), os.environ.get('GISBASE'),
                          dbase, location, os.path.basename(mapset_name)))
-
-                         
-    def setOutputDbStorage(self, dbsettings):
-        self.writer=PgStorage(self.uuid, self.identifier, dbsettings)

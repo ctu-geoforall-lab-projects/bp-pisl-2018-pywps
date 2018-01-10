@@ -17,6 +17,8 @@ LOGGER = logging.getLogger('PYWPS')
 
 class STORE_TYPE:
     PATH = 0
+    DB = 1 # TODO: PG?
+
 # TODO: cover with tests
 
 
@@ -139,7 +141,8 @@ class FileStorage(StorageAbstract):
 class PgStorage(StorageAbstract):
     """PostGIS/PostgreSQL storage implementation, stores data to PostGIS database
     """
-    def __init__(self, uuid, identifier, dbsettings): #dbsettings = "db" (section name from pywps.cfg)
+    def __init__(self):
+        dbsettings = 'db' # TODO
         self.dbname = config.get_config_value(dbsettings, "dbname")
         # -> target
         self.connstr = "dbname={} user={} password={} host={}".format(
@@ -149,13 +152,22 @@ class PgStorage(StorageAbstract):
             config.get_config_value(dbsettings, "host")
         )
 
-        self.schema_name = self.create_schema(identifier, uuid)
-    
-    def create_schema(self, identifier, uuid):
+        # self.schema_name = self.create_schema(identifier, uuid)
+        self.schema_name = self._create_schema()
+
+    def _create_schema(self):
         import psycopg2
-        schema_name = '{}_{}'.format(identifier.lower(),
-                            str(uuid).lower()
-            )
+        import random
+        import string
+
+        # random schema
+        N = 10
+        schema_name = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(N))
+        # process based schema (TODO)
+        # schema_name = '{}_{}'.format(identifier.lower(),
+        #                              str(uuid).lower()
+        # )
+
         try:
             conn = psycopg2.connect(self.connstr)
         except:
@@ -171,7 +183,7 @@ class PgStorage(StorageAbstract):
         conn.close()
         return schema_name
 
-    def store_output(self, file_name, identifier):
+    def _store_output(self, file_name, identifier):
         from osgeo import ogr
         #        try:
         LOGGER.debug("Connect string: {}".format(self.connstr))
@@ -191,10 +203,11 @@ class PgStorage(StorageAbstract):
 
         return identifier
             
-    def store(self, outputs):
-        for param in outputs:   
-            self.store_output(param.file, param.identifier)
-            param.data = '"{}"."{}"."{}"'.format(self.dbname, self.schema_name, param.identifier)
+    def store(self, output):
+        self._store_output(output.file, output.identifier)
+        url = '{}.{}.{}'.format(self.dbname, self.schema_name, output.identifier)
+
+        return (STORE_TYPE.DB, output.file, url)
 
 def get_free_space(folder):
     """ Return folder/drive free space (in bytes)

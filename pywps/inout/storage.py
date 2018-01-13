@@ -147,7 +147,7 @@ class PgStorage(StorageAbstract):
         self.dbname = config.get_config_value(dbsettings, "dbname")
         self.target = "dbname={} user={} password={} host={}".format(
             self.dbname,
-            config.get_config_value(dbsettings, "user"), 
+            config.get_config_value(dbsettings, "user"),
             config.get_config_value(dbsettings, "password"),
             config.get_config_value(dbsettings, "host")
         )
@@ -173,7 +173,7 @@ class PgStorage(StorageAbstract):
         except:
             raise Exception ("Database connection has not been established.")
         cur = conn.cursor()
-        query = 'CREATE SCHEMA IF NOT EXISTS "{}";'.format(schema_name)  
+        query = 'CREATE SCHEMA IF NOT EXISTS "{}";'.format(schema_name)
         try:
             cur.execute(query)
         except:
@@ -202,7 +202,7 @@ class PgStorage(StorageAbstract):
             raise Exception("Writing output data to the database failed.")
 
         return identifier
-            
+
     def store(self, output):
         self._store_output(output.file, output.identifier)
         url = '{}.{}.{}'.format(self.dbname, self.schema_name, output.identifier)

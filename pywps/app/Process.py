@@ -233,9 +233,6 @@ class Process(object):
             wps_response.update_status('PyWPS Process started', 0)
             wps_response = self.handler(wps_request, wps_response)
 
-            if hasattr(self, 'writer'):
-                self.writer.store(self.outputs)
-
             # if (not wps_response.status_percentage) or (wps_response.status_percentage != 100):
             LOGGER.debug('Updating process status to 100% if everything went correctly')
             wps_response.update_status('PyWPS Process {} finished'.format(self.title),

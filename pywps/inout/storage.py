@@ -189,7 +189,7 @@ class PgStorage(StorageAbstract):
         
     def _store_output(self, file_name, identifier):
         """ Opens output file, connects to PostGIS database and copies data there
-        """
+        """ 
         from osgeo import ogr
         # connect to a database and copy output there
         LOGGER.debug("Connect string: {}".format(self.target))
@@ -205,7 +205,7 @@ class PgStorage(StorageAbstract):
         )
         if layer is None:
             raise Exception("Writing output data to the database failed.")
-
+        # returns process identifier (defined within the process)
         return identifier
 
     def store(self, output):
@@ -213,7 +213,8 @@ class PgStorage(StorageAbstract):
         """
         self._store_output(output.file, output.identifier)
         url = '{}.{}.{}'.format(self.dbname, self.schema_name, output.identifier)
-
+        # returns value for database storage defined in the STORE_TYPE class,        
+        # name of the output file and a reference
         return (STORE_TYPE.DB, output.file, url)
 
 def get_free_space(folder):

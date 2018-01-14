@@ -1,0 +1,137 @@
+diff --git a/pywps/inout/outputs.py b/pywps/inout/outputs.py
+index 59b3adb..3789389 100644
+--- a/pywps/inout/outputs.py
++++ b/pywps/inout/outputs.py
+@@ -8,9 +8,10 @@
+ from pywps._compat import text_type
+ from pywps import E, WPS, OWS, OGCTYPE, NAMESPACES
+ from pywps.inout import basic
+-from pywps.inout.storage import FileStorage
++from pywps.inout.storage import FileStorage, PgStorage
+ from pywps.inout.formats import Format
+ from pywps.validator.mode import MODE
++from pywps import configuration as config
+ import lxml.etree as etree
+ import six
+ 
+@@ -193,12 +194,21 @@ class ComplexOutput(basic.ComplexOutput):
+         return doc
+ 
+     def _execute_xml_reference(self):
+-        """Return Reference node
++        """ Decide what storage model to use and return Reference node
+         """
+         doc = WPS.Reference()
+ 
+         # get_url will create the file and return the url for it
+-        self.storage = FileStorage()
++        
++        store_type = config.get_config_value('server', 'store_type')
++        self.storage = None
++        # chooses FileStorage or PgStorage based on a store_type value in cfg file
++        if store_type == 'db' and \
++           config.get_config_value('db', 'dbname'):
++            # TODO: more databases in config file
++            self.storage = PgStorage()
++        else:
++            self.storage = FileStorage()
+         doc.attrib['{http://www.w3.org/1999/xlink}href'] = self.get_url()
+ 
+         if self.data_format:
+diff --git a/pywps/inout/storage.py b/pywps/inout/storage.py
+index 0868cc5..01f7ecb 100644
+--- a/pywps/inout/storage.py
++++ b/pywps/inout/storage.py
+@@ -17,6 +17,8 @@ LOGGER = logging.getLogger('PYWPS')
+ 
+ class STORE_TYPE:
+     PATH = 0
++    DB = 1 # TODO: PG?
++
+ # TODO: cover with tests
+ 
+ 
+@@ -136,6 +138,83 @@ class FileStorage(StorageAbstract):
+ 
+         return (STORE_TYPE.PATH, output_name, url)
+ 
++class PgStorage(StorageAbstract):
++    """PostGIS/PostgreSQL storage implementation, stores data to PostGIS database
++    """
++    def __init__(self):
++        # TODO: more databases in config file
++        # create connection string
++        dbsettings = "db"
++        self.dbname = config.get_config_value(dbsettings, "dbname")
++        self.target = "dbname={} user={} password={} host={}".format(
++            self.dbname,
++            config.get_config_value(dbsettings, "user"),
++            config.get_config_value(dbsettings, "password"),
++            config.get_config_value(dbsettings, "host")
++        )
++
++        self.schema_name = self._create_schema()
++
++    def _create_schema(self):
++        """ Generates random schema name, connects to PostGIS database and creates schema 
++        """
++        import psycopg2
++        import random
++        import string
++
++        # random schema consisting of letters and digits 
++        N = 10
++        schema_name = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(N))
++        # process based schema (TODO)
++        # schema_name = '{}_{}'.format(identifier.lower(),
++        #                              str(uuid).lower()
++        # )
++
++        # connect to a database and create schema 
++        try:
++            conn = psycopg2.connect(self.target)
++        except:
++            raise Exception ("Database connection has not been established.")
++        cur = conn.cursor()
++        query = 'CREATE SCHEMA IF NOT EXISTS "{}";'.format(schema_name)
++        try:
++            cur.execute(query)
++        except:
++            raise Exception("The query did not run succesfully.")
++        conn.commit()
++        cur.close()
++        conn.close()
++        return schema_name
++
++        
++    def _store_output(self, file_name, identifier):
++        """ Opens output file, connects to PostGIS database and copies data there
++        """
++        from osgeo import ogr
++        # connect to a database and copy output there
++        LOGGER.debug("Connect string: {}".format(self.target))
++        dsc_in = ogr.Open(file_name)
++        if dsc_in is None:
++            raise Exception("Reading data failed.")
++        dsc_out = ogr.Open("PG:" + self.target)
++        if dsc_out is None:
++            raise Exception("Database connection has not been established.")
++        layer = dsc_out.CopyLayer(dsc_in.GetLayer(), identifier,
++                                  ['OVERWRITE=YES',
++                                   'SCHEMA={}'.format(self.schema_name)]
++        )
++        if layer is None:
++            raise Exception("Writing output data to the database failed.")
++
++        return identifier
++
++    def store(self, output):
++        """ Creates reference that is returned to the client (database name, schema name, table name)
++        """
++        self._store_output(output.file, output.identifier)
++        url = '{}.{}.{}'.format(self.dbname, self.schema_name, output.identifier)
++
++        return (STORE_TYPE.DB, output.file, url)
+ 
+ def get_free_space(folder):
+     """ Return folder/drive free space (in bytes)

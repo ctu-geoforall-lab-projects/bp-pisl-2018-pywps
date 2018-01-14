@@ -143,6 +143,7 @@ class PgStorage(StorageAbstract):
     """
     def __init__(self):
         # TODO: more databases in config file
+        # create connection string
         dbsettings = "db"
         self.dbname = config.get_config_value(dbsettings, "dbname")
         self.target = "dbname={} user={} password={} host={}".format(
@@ -152,15 +153,16 @@ class PgStorage(StorageAbstract):
             config.get_config_value(dbsettings, "host")
         )
 
-        # self.schema_name = self.create_schema(identifier, uuid)
         self.schema_name = self._create_schema()
 
     def _create_schema(self):
+        """ Generates random schema name, connects to PostGIS database and creates schema 
+        """
         import psycopg2
         import random
         import string
 
-        # random schema
+        # random schema consisting of letters and digits 
         N = 10
         schema_name = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(N))
         # process based schema (TODO)
@@ -168,6 +170,7 @@ class PgStorage(StorageAbstract):
         #                              str(uuid).lower()
         # )
 
+        # connect to a database and create schema 
         try:
             conn = psycopg2.connect(self.target)
         except:
@@ -183,9 +186,12 @@ class PgStorage(StorageAbstract):
         conn.close()
         return schema_name
 
+        
     def _store_output(self, file_name, identifier):
+        """ Opens output file, connects to PostGIS database and copies data there
+        """
         from osgeo import ogr
-        #        try:
+        # connect to a database and copy output there
         LOGGER.debug("Connect string: {}".format(self.target))
         dsc_in = ogr.Open(file_name)
         if dsc_in is None:
@@ -197,13 +203,14 @@ class PgStorage(StorageAbstract):
                                   ['OVERWRITE=YES',
                                    'SCHEMA={}'.format(self.schema_name)]
         )
-        # TODO: layer is valid even copying failed (schema do not exists)
         if layer is None:
             raise Exception("Writing output data to the database failed.")
 
         return identifier
 
     def store(self, output):
+        """ Creates reference that is returned to the client (database name, schema name, table name)
+        """
         self._store_output(output.file, output.identifier)
         url = '{}.{}.{}'.format(self.dbname, self.schema_name, output.identifier)
 

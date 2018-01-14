@@ -194,13 +194,15 @@ class ComplexOutput(basic.ComplexOutput):
         return doc
 
     def _execute_xml_reference(self):
-        """Return Reference node
+        """ Decide what storage model to use and return Reference node
         """
         doc = WPS.Reference()
 
         # get_url will create the file and return the url for it
+        
         store_type = config.get_config_value('server', 'store_type')
         self.storage = None
+        # chooses FileStorage or PgStorage based on a store_type value in cfg file
         if store_type == 'db' and \
            config.get_config_value('db', 'dbname'):
             # TODO: more databases in config file

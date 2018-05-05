@@ -8,7 +8,7 @@
 from pywps._compat import text_type
 from pywps import E, WPS, OWS, OGCTYPE, NAMESPACES
 from pywps.inout import basic
-from pywps.inout.storage import FileStorage, PgStorage
+from pywps.inout.storage import FileStorage, PgStorage, S3Storage
 from pywps.inout.formats import Format
 from pywps.validator.mode import MODE
 from pywps import configuration as config
@@ -202,11 +202,14 @@ class ComplexOutput(basic.ComplexOutput):
         
         store_type = config.get_config_value('server', 'store_type')
         self.storage = None
-        # chooses FileStorage or PgStorage based on a store_type value in cfg file
+        # chooses FileStorage, S3Storage or PgStorage based on a store_type value in cfg file
         if store_type == 'db' and \
            config.get_config_value('db', 'dbname'):
             # TODO: more databases in config file
             self.storage = PgStorage()
+        elif store_type == 's3' and \
+           config.get_config_value('s3', 'bucket_name'):
+            self.storage = S3Storage()
         else:
             self.storage = FileStorage()
         doc.attrib['{http://www.w3.org/1999/xlink}href'] = self.get_url()

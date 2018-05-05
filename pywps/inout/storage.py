@@ -18,7 +18,7 @@ LOGGER = logging.getLogger('PYWPS')
 class STORE_TYPE:
     PATH = 0
     DB = 1 # TODO: PG?
-
+    S3 = 2
 # TODO: cover with tests
 
 
@@ -233,3 +233,26 @@ def get_free_space(folder):
 
     LOGGER.debug('Free space: %s', free_space)
     return free_space
+
+
+class S3Storage(StorageAbstract)
+	
+	def store(self, output)
+		import boto3
+		from pywps import configuration
+
+		# Create an S3 client
+		s3 = boto3.client('s3')
+
+		# Get filename
+		filename = output.file
+
+		# Get bucket name
+		bucket_name = configuration.get_config_value('s3', 'bucket_name')
+
+
+		# Upload the file
+		s3.upload_file(filename, bucket_name, filename)
+
+
+		return (STORE_TYPE.S3, filename, bucket_name)

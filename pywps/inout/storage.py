@@ -242,7 +242,7 @@ class S3Storage(StorageAbstract)
 		from pywps import configuration
 
 		# Create an S3 client
-		s3 = boto3.client('s3')
+        s3 = boto3.resource('s3')
 
 		# Get filename
 		filename = output.file
@@ -250,9 +250,13 @@ class S3Storage(StorageAbstract)
 		# Get bucket name
 		bucket_name = configuration.get_config_value('s3', 'bucket_name')
 
-
 		# Upload the file
 		s3.upload_file(filename, bucket_name, filename)
 
+        # Create an S3 client
+        s3_get_ref =  boto3.client('s3')
 
-		return (STORE_TYPE.S3, filename, bucket_name)
+        # Get reference
+        reference = s3_get_ref.get_bucket_website(Bucket=bucket_name)
+
+		return (STORE_TYPE.S3, filename, reference)

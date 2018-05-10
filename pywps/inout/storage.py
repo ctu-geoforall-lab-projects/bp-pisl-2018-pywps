@@ -236,27 +236,24 @@ def get_free_space(folder):
 
 
 class S3Storage(StorageAbstract)
-	
-	def store(self, output)
-		import boto3
-		from pywps import configuration
-
-		# Create an S3 client
-        s3 = boto3.resource('s3')
-
-		# Get filename
-		filename = output.file
-
-		# Get bucket name
-		bucket_name = configuration.get_config_value('s3', 'bucket_name')
-
-		# Upload the file
-		s3.upload_file(filename, bucket_name, filename)
+    
+    def store(self, output)
+        import boto3
+        from pywps import configuration
 
         # Create an S3 client
-        s3_get_ref =  boto3.client('s3')
+        s3 = boto3.client('s3')
+
+        # Get filename
+        filename = output.file
+
+        # Get bucket name
+        bucket_name = configuration.get_config_value('s3', 'bucket_name')
+
+        # Upload the file
+        s3.upload_file(filename, bucket_name, filename)
 
         # Get reference
-        reference = s3_get_ref.get_bucket_website(Bucket=bucket_name)
+        reference = s3.get_bucket_website(Bucket=bucket_name)
 
-		return (STORE_TYPE.S3, filename, reference)
+        return (STORE_TYPE.S3, filename, reference)
